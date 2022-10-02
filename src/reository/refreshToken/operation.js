@@ -26,7 +26,6 @@ export default class RefreshTokenOperation {
     }
 
     async delete(query) {
-        console.log(query)
         return this.model.deleteOne(query)
     }
 };

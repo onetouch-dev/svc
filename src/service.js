@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
 
 import {
     Database,
@@ -30,7 +31,7 @@ class Server {
             res.send("I am all okay...!!!")
         });
 
-        this.app.use('/api', router);
+        this.app.use('/api', cors(), router);
 
         this.app.use(notFoundRoute);
         this.app.use(errorHandler);

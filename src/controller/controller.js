@@ -45,7 +45,10 @@ class userController {
                             await refreshTokenOperation.findOneAndUpdate({ userId: doc._id }, { token: refreshToken })
                         }
 
-                        res.status(200).send({ accessToken: accessToken, refreshToken: refreshToken })
+                        res.status(200).send({ 
+                            status: 200,
+                            accessToken: accessToken, 
+                            refreshToken: refreshToken })
                     } else {
                         next({
                             status: 400,
@@ -97,7 +100,7 @@ class userController {
                         await refreshTokenOperation.findOneAndUpdate({ userId: doc._id }, { token: refreshToken })
                     }
 
-                    res.status(200).send({ accessToken, refreshToken })
+                    res.status(200).send({ status: 200, accessToken, refreshToken })
                 } else {
                     next({
                         message: "Bad request",
@@ -120,8 +123,11 @@ class userController {
             const userOperation = new UserOperation();
             const docs = await userOperation.findOne({ email: user.email });
             res.status(200).send({
-                ...user,
-                imageUrl: docs.imageUrl || null
+                status: 200,
+                data: {
+                    ...user,
+                    imageUrl: docs.imageUrl || null
+                }
             })
         } catch (err) {
             next({
@@ -227,6 +233,7 @@ class userController {
             const { deletedCount } = await refreshTokenOperation.delete({ token: refreshToken });
             if (deletedCount > 0) {
                 res.status(200).send({
+                    status: 200,
                     message: "Logout successful"
                 })
             } else {
