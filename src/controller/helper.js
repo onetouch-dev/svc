@@ -5,7 +5,7 @@ import configuration from "../configuration";
 
 
 export const generateAccessToken = (user) => {
-    return jwt.sign(user, configuration.accesstokenSecretKey, { expiresIn: '20m' })
+    return jwt.sign(user, configuration.accesstokenSecretKey, { expiresIn: '1h' })
 };
 
 export const generateRefreshToken = (user) => {

@@ -45,10 +45,11 @@ class userController {
                             await refreshTokenOperation.findOneAndUpdate({ userId: doc._id }, { token: refreshToken })
                         }
 
-                        res.status(200).send({ 
+                        res.status(200).send({
                             status: 200,
-                            accessToken: accessToken, 
-                            refreshToken: refreshToken })
+                            accessToken: accessToken,
+                            refreshToken: refreshToken
+                        })
                     } else {
                         next({
                             status: 400,
@@ -186,6 +187,7 @@ class userController {
             })
 
             const decoded = jwt.verify(token, configuration.refreshtokenSecretKey)
+
             if (!decoded) {
                 next({
                     message: "Invalid token",
@@ -200,13 +202,14 @@ class userController {
             const isVerified = await refreshTokenOperation.findOne({ token });
             if (!isVerified) {
                 next({
-                    message: "Token has expired",
+                    message: "Token expired, Login again",
                     status: 400
                 })
             } else {
                 const { modifiedCount } = await refreshTokenOperation.update({ _id: isVerified._id }, { token: refreshToken });
                 if (modifiedCount > 0) {
                     res.status(200).send({
+                        status: 200,
                         accessToken: accessToken,
                         refreshToken: refreshToken
                     })

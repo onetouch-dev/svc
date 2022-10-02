@@ -1,5 +1,5 @@
 const errorHanlder = (err, req, res, next) => {
-    res.json(
+    res.status(err.status).send(
         {
             status: err.status,
             message: err.message || 'Error',

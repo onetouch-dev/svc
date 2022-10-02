@@ -8,7 +8,7 @@ const verifyToken = (req, res, next) => {
         if (!token) {
             next({
                 message: "token required",
-                status: 400
+                status: 401
             })
         }
 
@@ -18,7 +18,7 @@ const verifyToken = (req, res, next) => {
     } catch (err) {
         next({
             message: "Invalid token",
-            status: 400
+            status: 401
         })
     }
 };
