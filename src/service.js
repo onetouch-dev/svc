@@ -1,7 +1,12 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-import Database from "./lib/database";
+import {
+    Database,
+    errorHandler,
+    notFoundRoute,
+} from "./lib";
+import router from "./router";
 
 class Server {
     constructor(configuration) {
@@ -25,6 +30,10 @@ class Server {
             res.send("I am all okay...!!!")
         });
 
+        this.app.use('/api', router);
+
+        this.app.use(notFoundRoute);
+        this.app.use(errorHandler);
 
     };
 
