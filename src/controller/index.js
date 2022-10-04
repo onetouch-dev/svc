@@ -1,11 +1,11 @@
 import { Router } from "express";
-import verifyToken from "../middleware.js/verfityToken";
 
+import { verifyToken, authenticateUser } from "../middleware";
 import userController from "./controller";
 
 const userRouter = Router();
 userRouter.route('/login')
-    .post(userController.login);
+    .post(authenticateUser, userController.login);
 
 userRouter.route('/signup')
     .post(userController.signup);
@@ -15,6 +15,9 @@ userRouter.route('/profile')
 
 userRouter.route('/update')
     .put(verifyToken, userController.updateProfile);
+
+userRouter.route('/change-password')
+    .patch(verifyToken, userController.changePassword)
 
 userRouter.route('/refresh-token')
     .post(userController.refreshToken);

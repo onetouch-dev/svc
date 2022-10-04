@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 
 import configuration from "../configuration";
+import UserOperation from "../reository/user/operation";
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
     try {
         const token = req.headers['authorization'];
         if (!token) {
@@ -12,8 +13,10 @@ const verifyToken = (req, res, next) => {
             })
         }
 
-        const decoded = jwt.verify(token, configuration.accesstokenSecretKey)
-        req.user = decoded;
+        const decoded = jwt.verify(token, configuration.accesstokenSecretKey);
+        const userOperation = new UserOperation();
+        const { password } = await userOperation.findOne({ email: decoded.email });
+        req.user = { ...decoded, password };
         next();
     } catch (err) {
         next({

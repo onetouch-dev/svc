@@ -23,46 +23,35 @@ class userController {
 
     async login(req, res, next) {
         try {
-            const { body: { username, password } } = req;
-            const userOperation = new UserOperation();
+            const { body: { username, password }, user } = req;
 
-            const doc = await userOperation.findOne({ email: username });
-            if (doc) {
-                const tokenData = { email: doc.email, name: doc.name, _id: doc._id }
-                bcrypt.compare(password, doc.password, async (err, result) => {
-                    if (result) {
-                        const accessToken = generateAccessToken(tokenData);
-                        const refreshToken = generateRefreshToken(tokenData);
+            const tokenData = { email: username, name: user.name, _id: user._id }
+            bcrypt.compare(password, user.password, async (err, result) => {
+                if (!result) {
+                    next({
+                        status: 400,
+                        message: "Wrong Password"
+                    })
+                }
+                const accessToken = generateAccessToken(tokenData);
+                const refreshToken = generateRefreshToken(tokenData);
 
-                        const refreshTokenOperation = new RefreshTokenOperation();
-                        const tokens = await refreshTokenOperation.findOne({ userId: doc._id });
-                        if (!tokens) {
-                            await refreshTokenOperation.create({
-                                token: refreshToken,
-                                userId: doc._id
-                            })
-                        } else {
-                            await refreshTokenOperation.findOneAndUpdate({ userId: doc._id }, { token: refreshToken })
-                        }
-
-                        res.status(200).send({
-                            status: 200,
-                            accessToken: accessToken,
-                            refreshToken: refreshToken
-                        })
-                    } else {
-                        next({
-                            status: 400,
-                            message: "Bad request"
-                        })
-                    }
+                const refreshTokenOperation = new RefreshTokenOperation();
+                const tokens = await refreshTokenOperation.findOne({ userId: user._id });
+                if (!tokens) {
+                    await refreshTokenOperation.create({
+                        token: refreshToken,
+                        userId: user._id
+                    })
+                } else {
+                    await refreshTokenOperation.findOneAndUpdate({ userId: user._id }, { token: refreshToken })
+                }
+                res.status(200).send({
+                    status: 200,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
                 })
-            } else {
-                next({
-                    status: 401,
-                    message: "authentication failed"
-                })
-            }
+            })
         } catch (err) {
             next({
                 message: err.message || "Bad request",
@@ -125,10 +114,7 @@ class userController {
             const docs = await userOperation.findOne({ email: user.email });
             res.status(200).send({
                 status: 200,
-                data: {
-                    ...user,
-                    imageUrl: docs.imageUrl || null
-                }
+                data: docs
             })
         } catch (err) {
             next({
@@ -140,42 +126,30 @@ class userController {
 
     async updateProfile(req, res, next) {
         try {
-            const authHeader = req.headers['authorization'];
             const { user } = req;
 
-            if (req.body?.email) {
+            const payload = generateUpdatePaylod({ ...req.body });
+            const userOperation = new UserOperation();
+            const { modifiedCount } = await userOperation.update({ _id: user._id }, payload);
+            if (modifiedCount > 0) {
+                const updatedDoc = await userOperation.findOne({ _id: user._id });
+                res.status(200).send({
+                    status: 200,
+                    data: updatedDoc
+                });
+            } else {
                 next({
                     message: "Bad request",
                     status: 400
                 })
             };
-
-            let hash;
-            if (req.body?.password) {
-                hash = await bcrypt.hash(req.body.password, parseInt(configuration.saltRound))
-            }
-
-            const userOperation = new UserOperation();
-            if (user) {
-                const payload = hash ? generateUpdatePaylod({ ...req.body, password: hash }) : generateUpdatePaylod({ ...req.body });
-                const { modifiedCount } = await userOperation.update({ _id: user._id }, payload);
-                if (modifiedCount > 0) {
-                    const updatedDoc = await userOperation.findOne({ _id: user._id })
-                    res.status(200).send(updatedDoc)
-                } else {
-                    next({
-                        message: "Bad request",
-                        status: 400
-                    })
-                }
-            }
         } catch (err) {
             next({
                 message: err.message,
                 status: 400
-            })
-        }
-    }
+            });
+        };
+    };
 
     async refreshToken(req, res, next) {
         try {
@@ -212,22 +186,21 @@ class userController {
                         status: 200,
                         accessToken: accessToken,
                         refreshToken: refreshToken
-                    })
+                    });
                 } else {
                     next({
                         message: "Invalid token",
                         status: 400
-                    })
-                }
-            }
-
+                    });
+                };
+            };
         } catch (err) {
             next({
                 message: err.message || "Bad request",
                 status: 400
-            })
-        }
-    }
+            });
+        };
+    };
 
     async logout(req, res, next) {
         try {
@@ -245,6 +218,40 @@ class userController {
                     status: 400
                 })
             }
+        } catch (err) {
+            next({
+                message: err.message || "Bad request",
+                status: 400
+            })
+        }
+    }
+
+    async changePassword(req, res, next) {
+        try {
+            const { body: { currentPassword, newPassword }, user } = req;
+            bcrypt.compare(currentPassword, user.password, async (err, result) => {
+                if (result) {
+                    const hash = await bcrypt.hash(newPassword, parseInt(configuration.saltRound));
+                    const userOperation = new UserOperation();
+                    const { modifiedCount } = await userOperation.update({ _id: user._id }, { password: hash });
+                    if (modifiedCount > 0) {
+                        res.status(200).send({
+                            status: 200,
+                            message: "password changed"
+                        })
+                    } else {
+                        next({
+                            message: "Bad request",
+                            status: 400
+                        })
+                    }
+                } else {
+                    next({
+                        message: "Wrong password",
+                        status: 400
+                    })
+                }
+            })
         } catch (err) {
             next({
                 message: err.message || "Bad request",

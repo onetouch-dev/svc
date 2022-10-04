@@ -5,7 +5,7 @@ import configuration from "../configuration";
 
 
 export const generateAccessToken = (user) => {
-    return jwt.sign(user, configuration.accesstokenSecretKey, { expiresIn: '1h' })
+    return jwt.sign(user, configuration.accesstokenSecretKey, { expiresIn: '10h' })
 };
 
 export const generateRefreshToken = (user) => {
@@ -16,8 +16,6 @@ export const generateUpdateFields = (field, value) => {
     switch (field) {
         case "name":
             return { name: value };
-        case "password":
-            return {  password: value};
         case "imageUrl":
             return { imageUrl: value }
     }
