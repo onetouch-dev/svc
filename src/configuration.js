@@ -1,10 +1,15 @@
 import * as dotenv from "dotenv";
 
-const parser = dotenv.config().parsed;
+dotenv.config();
 
 const configuration = {
-    port: parser.PORT,
-    mongourl: parser.MONGO_URL
+    port: process.env.PORT,
+    mongourl: process.env.MONGO_URL,
+    accesstokenSecretKey: process.env.ACCESS_TOKEN_SECRET_KEY,
+    refreshtokenSecretKey: process.env.REFRESH_TOKEN_SECRET_KEY,
+    saltRound: process.env.SALT_ROUND,
+    password: process.env.PASSWORD,
+    profileImage: process.env.PROFILE_IMAGE,
 };
 
 Object.freeze(configuration);
